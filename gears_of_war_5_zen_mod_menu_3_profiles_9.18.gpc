@@ -1094,7 +1094,11 @@ if(event_press(PS4_TOUCH)) {
 }
 
 // === NEW: AUTO L1 SPAM CORE LOGIC ===
-if(toggle_autoXSpam[profile_idx]) {
+if(ModMenu) {
+	// Ensure menu navigation does not leak the remapped action.
+	combo_stop(AUTO_SPAM_L1);
+	autoXSpam_just_pressed = FALSE;
+} else if(toggle_autoXSpam[profile_idx]) {
 	// --- Auto Mode ---
 	if(autoXSpam_master_on) {
 		// Check for pausing conditions (e.g., aiming down sights)
