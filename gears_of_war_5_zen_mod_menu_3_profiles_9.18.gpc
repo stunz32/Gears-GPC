@@ -308,6 +308,8 @@ int packed_toggles;            // Temporary variable for unpacking SPVAR data
 
 // --- Button Remapping Helper Variables ---
 int physical_L1;               // Store physical L1 state before remapping
+int prev_physical_L1;          // Previous loop's physical L1 state (tap detection)
+int physical_L1_just_pressed;  // TRUE for the tick the player taps L1
 int physical_CROSS;            // Store physical CROSS state before remapping
 int physical_TRIANGLE;         // Store physical TRIANGLE state before remapping
 int physical_SQUARE;           // Store physical SQUARE state before remapping
@@ -707,11 +709,13 @@ main {
 	// === NEW: BUTTON REMAPPING LOGIC START ===
 	// This MUST be at the top of the main loop.
 	
-	// 1. Store the physical state of buttons we are about to remap.
-	physical_L1 = get_val(PS4_L1);
-	physical_CROSS = get_val(PS4_CROSS);
-	physical_TRIANGLE = get_val(PS4_TRIANGLE);
-	physical_SQUARE = get_val(PS4_SQUARE);
+        // 1. Store the physical state of buttons we are about to remap.
+        prev_physical_L1 = physical_L1;
+        physical_L1 = get_val(PS4_L1);
+        physical_L1_just_pressed = physical_L1 && !prev_physical_L1;
+        physical_CROSS = get_val(PS4_CROSS);
+        physical_TRIANGLE = get_val(PS4_TRIANGLE);
+        physical_SQUARE = get_val(PS4_SQUARE);
 
 	// Capture manual R1 hold length for dynamic Perfect Reload timing
 	if(get_val(PS4_R1) && !combo_running(AUTORELOAD) && !combo_running(PERFECTRELOAD))
@@ -1169,20 +1173,20 @@ if(autoCoverExit_cooldown_timer > 0) {
 }
 
 // --- 2. Trigger Logic: Should we initiate a peek? ---
-// Initiate auto-exit only on the exact tick the script presses L1, with strong movement and classic mode
+// Initiate auto-exit when either the script pulses L1 or the player taps it manually.
 if(
     toggle_autoCoverExit[profile_idx] &&         // Feature enabled
-    toggle_autoXSpam[profile_idx] &&             // Auto Spam enabled for profile
-    autoXSpam_master_on &&                       // Script is pressing L1 (not manual)
     autoXSpam_mode[profile_idx] == 0 &&          // Classic mode only
-    !autoXSpam_paused &&                         // Not paused (e.g., not ADS)
-    autoXSpam_just_pressed &&                    // Same tick the combo pressed
+    (
+        (toggle_autoXSpam[profile_idx] && autoXSpam_master_on && !autoXSpam_paused && autoXSpam_just_pressed) ||
+        physical_L1_just_pressed
+    ) &&                                       // Triggered by auto spam or a manual tap
     autoCoverExit_cooldown_timer <= 0 &&         // Off cooldown
     (abs(get_val(PS4_LX)) > AUTO_COVER_MOVE_THRESH || abs(get_val(PS4_LY)) > AUTO_COVER_MOVE_THRESH)
 ) {
-	// If all conditions are met:
-	// a. Capture the OPPOSITE direction of the player's current movement.
-	cover_exit_lx = inv(get_val(PS4_LX));
+        // If all conditions are met:
+        // a. Capture the OPPOSITE direction of the player's current movement.
+        cover_exit_lx = inv(get_val(PS4_LX));
 	cover_exit_ly = inv(get_val(PS4_LY));
 	
 	// b. Run the appropriate exit combo.
