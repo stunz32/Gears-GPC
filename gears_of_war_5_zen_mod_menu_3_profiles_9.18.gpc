@@ -313,6 +313,7 @@ int physical_TRIANGLE;         // Store physical TRIANGLE state before remapping
 int physical_SQUARE;           // Store physical SQUARE state before remapping
 int perfectreload_wait_ms;      // Next wait duration for Perfect Reload combo
 int perfectreload_press_duration; // Last measured manual R1 hold in ms
+int easyPing_ads_active;        // TRUE while ADS is held for Easy Ping
 
 // --- Enhanced Stick Helper Variables ---
     int current_lx, current_ly;    // Store current stick values for Enhanced Stick processing
@@ -586,8 +587,9 @@ init{
 	toggle_turboMelee [2]		= get_pvar(SPVAR_42, 0, 1, 0 );
 
     perfectreload_wait_ms = perfectreload_time[0];
+    easyPing_ads_active = FALSE;
 
-// Misc	
+// Misc
 // Toggles only													// Values
     															 
     autorun_on	 = get_pvar(SPVAR_47, 0, 1, 1);					burstfire_hold    	= get_pvar(SPVAR_50, 1, 999, 200);
@@ -1257,22 +1259,25 @@ if(
 
 	// 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜
 	
-	//Easy Ping is enable for the curent profile
- 
- {
-if(toggle_easyPing [profile_idx] == 1)
-        
-        
-        
-    // Run combo
-		if(get_val(PS4_L2))
-			combo_run(EASYPING);
-    	else
-			combo_stop(EASYPING);
-    
-    }
-	
-	//Crouch Shot is enable for the curent profile //Will Roll or Go towards wall
+        //Easy Ping is enable for the curent profile
+        if(toggle_easyPing[profile_idx] == 1) {
+            if(event_press(PS4_L2)) {
+                easyPing_ads_active = TRUE;
+                combo_restart(EASYPING);
+            }
+            if(event_release(PS4_L2)) {
+                easyPing_ads_active = FALSE;
+                combo_stop(EASYPING);
+            }
+            if(easyPing_ads_active && !combo_running(EASYPING)) {
+                combo_run(EASYPING);
+            }
+        } else if(easyPing_ads_active) {
+            easyPing_ads_active = FALSE;
+            combo_stop(EASYPING);
+        }
+
+        //Crouch Shot is enable for the curent profile //Will Roll or Go towards wall
 {
 	
 if(toggle_crouchShot [profile_idx] == 1)
@@ -1823,10 +1828,11 @@ combo TURBOMELEE {
 	
 //Easy Ping
 combo EASYPING {
-	wait(1000);
-	set_val(PS4_L3, 100);
-	wait(3000);
-	set_val(PS4_L3, 0);
+        wait(250);
+        set_val(PS4_L3, 100);
+        wait(80);
+        set_val(PS4_L3, 0);
+        wait(300);
 }
 
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜	
