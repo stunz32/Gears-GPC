@@ -536,7 +536,7 @@ data(
  
 init{
 // One-time migration: set new default toggles and P3 rapidfire, then mark as migrated
-    int shotgun_pack = get_pvar(SPVAR_62, 0, 33554431, 0);
+    shotgun_pack = get_pvar(SPVAR_62, 0, 33554431, 0);
     migrated = shotgun_pack & 1;
     if(migrated == 0) {
         packed_toggles = (MASK_SPAM_P1 | MASK_COVEREXIT_P1 |
