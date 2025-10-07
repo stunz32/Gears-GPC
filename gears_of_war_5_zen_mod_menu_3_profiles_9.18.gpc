@@ -518,6 +518,7 @@ data(
     int migrated;    // One-time migration flag (SPVAR_62)
     int migrated_v2; // One-time migration v2 (SPVAR_63)
     int migrated_v3; // One-time migration v3 (SPVAR_63 stage 2)
+    int shotgun_pack; // Packed shotgun settings (SPVAR_62)
     int migration_flags;        // Migration flags bitmask (SPVAR_11)
     int migration_flags_original;
 
@@ -535,7 +536,7 @@ data(
  
 init{
 // One-time migration: set new default toggles and P3 rapidfire, then mark as migrated
-    int shotgun_pack = get_pvar(SPVAR_62, 0, 33554431, 0);
+    shotgun_pack = get_pvar(SPVAR_62, 0, 33554431, 0);
     migrated = shotgun_pack & 1;
     if(migrated == 0) {
         packed_toggles = (MASK_SPAM_P1 | MASK_COVEREXIT_P1 |
