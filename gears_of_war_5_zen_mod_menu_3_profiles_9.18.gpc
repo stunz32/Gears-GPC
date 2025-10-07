@@ -518,6 +518,7 @@ data(
     int migrated;    // One-time migration flag (SPVAR_62)
     int migrated_v2; // One-time migration v2 (SPVAR_63)
     int migrated_v3; // One-time migration v3 (SPVAR_63 stage 2)
+    int shotgun_pack; // Packed shotgun settings (SPVAR_62)
     int migration_flags;        // Migration flags bitmask (SPVAR_11)
     int migration_flags_original;
 
@@ -534,8 +535,10 @@ data(
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 
  
 init{
-// One-time migration: set new default toggles and P3 rapidfire, then mark as migrated
-    int shotgun_pack = get_pvar(SPVAR_62, 0, 33554431, 0);
+    int spam_pack;
+    int legacy_speed;
+    // One-time migration: set new default toggles and P3 rapidfire, then mark as migrated
+    shotgun_pack = get_pvar(SPVAR_62, 0, 33554431, 0);
     migrated = shotgun_pack & 1;
     if(migrated == 0) {
         packed_toggles = (MASK_SPAM_P1 | MASK_COVEREXIT_P1 |
@@ -551,8 +554,7 @@ init{
     // One-time migration v2: bump Spam Speed default from 40 -> 80 only if still at old default
     migrated_v2 = get_pvar(SPVAR_63, 0, 1, 0);
     if(migrated_v2 == 0) {
-        int spam_pack = get_pvar(SPVAR_57, 0, 131071, 0);
-        int legacy_speed;
+        spam_pack = get_pvar(SPVAR_57, 0, 131071, 0);
         if(spam_pack == 0) {
             legacy_speed = 40;
         } else if(spam_pack <= 200) {
@@ -2537,7 +2539,7 @@ set_pvar(SPVAR_60, autoCoverExit_cooldown);
     if(shotgun_recoil_vertical[0] > 99) shotgun_recoil_vertical[0] = 99;
     if(shotgun_recoil_vertical[1] > 99) shotgun_recoil_vertical[1] = 99;
     if(shotgun_recoil_vertical[2] > 99) shotgun_recoil_vertical[2] = 99;
-    int shotgun_pack = 1;
+    shotgun_pack = 1;
     shotgun_pack |= (shotgun_recoil_vertical[0] & 0xFF) << 1;
     shotgun_pack |= (shotgun_recoil_vertical[1] & 0xFF) << 9;
     shotgun_pack |= (shotgun_recoil_vertical[2] & 0xFF) << 17;
