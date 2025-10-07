@@ -2538,7 +2538,7 @@ set_pvar(SPVAR_60, autoCoverExit_cooldown);
     if(shotgun_recoil_vertical[0] > 99) shotgun_recoil_vertical[0] = 99;
     if(shotgun_recoil_vertical[1] > 99) shotgun_recoil_vertical[1] = 99;
     if(shotgun_recoil_vertical[2] > 99) shotgun_recoil_vertical[2] = 99;
-    int shotgun_pack = 1;
+    shotgun_pack = 1;
     shotgun_pack |= (shotgun_recoil_vertical[0] & 0xFF) << 1;
     shotgun_pack |= (shotgun_recoil_vertical[1] & 0xFF) << 9;
     shotgun_pack |= (shotgun_recoil_vertical[2] & 0xFF) << 17;
