@@ -175,20 +175,21 @@ Wall Bounce - 					- Bounce walls when running.
 	const string AUTO_RUN			= "AutoRun";		 // modName_idx = 11
 	const string SWAP 				= "Swap Tr/Bu";		 // modName_idx = 12
 	const string INVERTED 			= "Inverted Y";   	 // modName_idx = 13
-	const string AUTO_X_SPAM        = "AutoSpam L1";     // modName_idx = 14
-        const string AUTO_COVER_EXIT    = "Cover Exit";      // modName_idx = 15
-		const string ENHANCED_STICK     = "Stick Xcel";      // modName_idx = 16
-                const string POP_SHOT           = "Pop Shot";        // modName_idx = 17
-                const string SHOTGUN_RECOIL     = "ShotgunAR";       // modName_idx = 18
+    const string AUTO_X_SPAM        = "AutoSpam L1";     // modName_idx = 14
+    const string MANUAL_L1          = "Manual L1";       // modName_idx = 15
+        const string AUTO_COVER_EXIT    = "Cover Exit";      // modName_idx = 16
+            const string ENHANCED_STICK     = "Stick Xcel";      // modName_idx = 17
+            const string POP_SHOT           = "Pop Shot";        // modName_idx = 18
+            const string SHOTGUN_RECOIL     = "ShotgunAR";       // modName_idx = 19
 
 // Index to find Mod Name string - switchable in game with left/right in ModMenu 
 	int modName_idx;
 
 // modName # of the last Mod Name string - Used for cycle modName_idx
-        define LAST_MODNAME_STRING = 18;
+        define LAST_MODNAME_STRING = 19;
 
 // # of the last modName_idx that has a value that can be edited
-        define LAST_EDITABLE_STRING = 18;
+        define LAST_EDITABLE_STRING = 19;
 	
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 
 
@@ -210,17 +211,19 @@ Wall Bounce - 					- Bounce walls when running.
 	const string CUSTOMSENSE_TIME = "CSENSE Time";			// valName_idx = 8 
 	// modName_idx = 6
 	const string PERFECTRELOAD_TIME = "PR Time";			// valName_idx = 9
-	// modName_idx = 14 (Auto X Spam)
-	const string AUTOXSPAM_MODE     = "Spam Mode";       // valName_idx = 10 (0=Classic, 1=Smart)
-	const string AUTOXSPAM_SPEED    = "Spam Speed";      // valName_idx = 11
-	// modName_idx = 15 (Auto Cover Exit)
-	const string COVEREXIT_DELAY    = "Exit Delay";      // valName_idx = 12
-	const string COVEREXIT_DURATION = "Exit Dur.";       // valName_idx = 13
+        // modName_idx = 14 (Auto X Spam)
+        const string AUTOXSPAM_MODE     = "Spam Mode";       // valName_idx = 10 (0=Classic, 1=Smart)
+        const string AUTOXSPAM_SPEED    = "Spam Speed";      // valName_idx = 11
+        // modName_idx = 15 (Manual L1)
+        const string MANUALL1_GAP       = "Tap Gap";         // valName_idx = 22
+        // modName_idx = 16 (Auto Cover Exit)
+        const string COVEREXIT_DELAY    = "Exit Delay";      // valName_idx = 12
+        const string COVEREXIT_DURATION = "Exit Dur.";       // valName_idx = 13
         const string COVEREXIT_COOLDOWN = "Cooldown";        // valName_idx = 14
         const string COVEREXIT_MODE     = "Exit Mode";       // valName_idx = 19
-		// modName_idx = 16 (Enhanced Stick)
-		const string STICK_THRESHOLD    = "Stick Thrsh";     // valName_idx = 15
-    // modName_idx = 17 (Pop Shot)
+                // modName_idx = 17 (Enhanced Stick)
+                const string STICK_THRESHOLD    = "Stick Thrsh";     // valName_idx = 15
+    // modName_idx = 18 (Pop Shot)
         const string POPSHOT_HOLD       = "Pop L2 Hold";     // valName_idx = 16
         // AutoReload configurable hold time (ms)
         const string AUTORELOAD_HOLD    = "AR Hold ms";      // valName_idx = 17
@@ -238,7 +241,7 @@ Wall Bounce - 					- Bounce walls when running.
 	int valName_idx;
 	int prev_valName_idx;
 	
-    define AMOUNT_OF_VALNAME_IDX = 21;
+    define AMOUNT_OF_VALNAME_IDX = 22;
 
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 
 
@@ -293,6 +296,10 @@ int autoXSpam_master_on;       // Master ON/OFF switch, controlled by Touchpad
 int autoXSpam_paused;          // Flag to temporarily pause spamming (e.g., when aiming)
 int last_lx, last_ly;          // Variables to store previous stick positions for Smart Mode
 int autoXSpam_just_pressed;    // TRUE for the tick the combo presses the button
+
+// --- Manual L1 Double Tap ---
+int toggle_manualL1[3];        // Per-profile toggle
+int manualL1_doubletap_delay;  // Gap between taps (ms)
 
 // --- Auto-Cover Exit System ---
 int toggle_autoCoverExit[3];   // Per-profile toggle
@@ -399,6 +406,10 @@ define MASK_COVEREXIT_MODE_P3 = 262144;  // bit 18
 define MASK_SHOTGUN_P1 = 524288;   // bit 19
 define MASK_SHOTGUN_P2 = 1048576;  // bit 20
 define MASK_SHOTGUN_P3 = 2097152;  // bit 21
+// Manual L1 per-profile toggles
+define MASK_MANUALL1_P1 = 4194304;   // bit 22
+define MASK_MANUALL1_P2 = 8388608;   // bit 23
+define MASK_MANUALL1_P3 = 16777216;  // bit 24
 // Migration flag bits
 define MIG_FLAG_STICK_RESET      = 1;
 define MIG_FLAG_EASYPING_DEFAULT = 2;
@@ -540,10 +551,23 @@ init{
     // One-time migration v2: bump Spam Speed default from 40 -> 80 only if still at old default
     migrated_v2 = get_pvar(SPVAR_63, 0, 1, 0);
     if(migrated_v2 == 0) {
-        autoXSpam_speed = get_pvar(SPVAR_57, 10, 200, 40);
-        if(autoXSpam_speed == 40) {
-            set_pvar(SPVAR_57, 80);
+        int spam_pack = get_pvar(SPVAR_57, 0, 131071, 0);
+        int legacy_speed;
+        if(spam_pack == 0) {
+            legacy_speed = 40;
+        } else if(spam_pack <= 200) {
+            legacy_speed = spam_pack;
+        } else {
+            legacy_speed = spam_pack & 0x1FF;
         }
+        if(legacy_speed < 10 || legacy_speed > 200) {
+            legacy_speed = 80;
+        }
+        if(legacy_speed == 40) {
+            legacy_speed = 80;
+        }
+        spam_pack = (100 << 9) | legacy_speed;
+        set_pvar(SPVAR_57, spam_pack);
         set_pvar(SPVAR_63, 1);
     }
     // One-time migration v3: set PR toggles ON and PR times per profile if still at old defaults
@@ -640,7 +664,7 @@ init{
     packed_toggles = get_pvar(
         SPVAR_56,
         0,
-        4194303,
+        33554431,
         (MASK_SPAM_P1 | MASK_COVEREXIT_P1 |
          MASK_SPAM_P2 | MASK_COVEREXIT_P2 |
          MASK_SPAM_P3 | MASK_COVEREXIT_P3 |
@@ -687,6 +711,7 @@ init{
 
     // --- Unpack Profile 1 Toggles ---
     if(packed_toggles & MASK_SPAM_P1) { toggle_autoXSpam[0] = TRUE; } else { toggle_autoXSpam[0] = FALSE; }
+    if(packed_toggles & MASK_MANUALL1_P1) { toggle_manualL1[0] = TRUE; } else { toggle_manualL1[0] = FALSE; }
     if(packed_toggles & MASK_COVEREXIT_P1) { toggle_autoCoverExit[0] = TRUE; } else { toggle_autoCoverExit[0] = FALSE; }
     if(packed_toggles & MASK_STICK_P1) { toggle_enhancedStick[0] = TRUE; } else { toggle_enhancedStick[0] = FALSE; }
     if(packed_toggles & MASK_COVEREXIT_MODE_P1) { autoCoverExit_mode[0] = 1; } else { autoCoverExit_mode[0] = 0; }
@@ -696,6 +721,7 @@ init{
 
     // --- Unpack Profile 2 Toggles ---
     if(packed_toggles & MASK_SPAM_P2) { toggle_autoXSpam[1] = TRUE; } else { toggle_autoXSpam[1] = FALSE; }
+    if(packed_toggles & MASK_MANUALL1_P2) { toggle_manualL1[1] = TRUE; } else { toggle_manualL1[1] = FALSE; }
     if(packed_toggles & MASK_COVEREXIT_P2) { toggle_autoCoverExit[1] = TRUE; } else { toggle_autoCoverExit[1] = FALSE; }
     if(packed_toggles & MASK_STICK_P2) { toggle_enhancedStick[1] = TRUE; } else { toggle_enhancedStick[1] = FALSE; }
     if(packed_toggles & MASK_COVEREXIT_MODE_P2) { autoCoverExit_mode[1] = 1; } else { autoCoverExit_mode[1] = 0; }
@@ -705,6 +731,7 @@ init{
 
     // --- Unpack Profile 3 Toggles ---
     if(packed_toggles & MASK_SPAM_P3) { toggle_autoXSpam[2] = TRUE; } else { toggle_autoXSpam[2] = FALSE; }
+    if(packed_toggles & MASK_MANUALL1_P3) { toggle_manualL1[2] = TRUE; } else { toggle_manualL1[2] = FALSE; }
     if(packed_toggles & MASK_COVEREXIT_P3) { toggle_autoCoverExit[2] = TRUE; } else { toggle_autoCoverExit[2] = FALSE; }
     if(packed_toggles & MASK_STICK_P3) { toggle_enhancedStick[2] = TRUE; } else { toggle_enhancedStick[2] = FALSE; }
     if(packed_toggles & MASK_COVEREXIT_MODE_P3) { autoCoverExit_mode[2] = 1; } else { autoCoverExit_mode[2] = 0; }
@@ -715,7 +742,23 @@ init{
     if(packed_toggles & MASK_AUTORUN_L3) { autorun_l3_toggle_enabled = TRUE; } else { autorun_l3_toggle_enabled = FALSE; }
 
     // Load Global Values for New Features (using the available SPVAR slots)
-    autoXSpam_speed          = get_pvar(SPVAR_57, 10, 200, 80);
+    int spam_pack = get_pvar(SPVAR_57, 0, 131071, (100 << 9) | 80);
+    if(spam_pack <= 200) {
+        autoXSpam_speed = spam_pack;
+        if(autoXSpam_speed < 10 || autoXSpam_speed > 200) {
+            autoXSpam_speed = 80;
+        }
+        manualL1_doubletap_delay = 100;
+        spam_pack = (manualL1_doubletap_delay << 9) | autoXSpam_speed;
+        set_pvar(SPVAR_57, spam_pack);
+    } else {
+        autoXSpam_speed = spam_pack & 0x1FF;
+        manualL1_doubletap_delay = (spam_pack >> 9) & 0x1FF;
+    }
+    if(autoXSpam_speed < 10) autoXSpam_speed = 10;
+    if(autoXSpam_speed > 200) autoXSpam_speed = 200;
+    if(manualL1_doubletap_delay < 20) manualL1_doubletap_delay = 20;
+    if(manualL1_doubletap_delay > 500) manualL1_doubletap_delay = 500;
     autoCoverExit_delay      = get_pvar(SPVAR_58, 50, 500, 200);
     autoCoverExit_duration   = get_pvar(SPVAR_59, 50, 500, 150);
     autoCoverExit_cooldown   = get_pvar(SPVAR_60, 100, 2000, 500);
@@ -769,9 +812,15 @@ main {
 		perfectreload_press_duration = get_ptime(PS4_R1);
 	
 	// 2. Apply the new layout using the stored physical states.
-	if(!ModMenu) {
-		// Physical L1 becomes the action button (outputting CROSS)
-		set_val(PS4_CROSS, physical_L1);
+        if(!ModMenu) {
+                // Physical L1 becomes the action button (outputting CROSS)
+                if(toggle_manualL1[profile_idx] && !toggle_autoXSpam[profile_idx]) {
+                        if(!combo_running(MANUAL_L1_DOUBLE_TAP) && !combo_running(AUTO_SPAM_L1)) {
+                                set_val(PS4_CROSS, 0);
+                        }
+                } else {
+                        set_val(PS4_CROSS, physical_L1);
+                }
 
 		// Physical X (Cross) becomes Reload (outputting SQUARE)
 		set_val(PS4_SQUARE, physical_CROSS);
@@ -968,6 +1017,7 @@ if(!KillSwitch)
                 customSense_time  = edit_val( 8 , customSense_time  , 0 , 327  , 10 , 100  );
                 autoXSpam_mode[profile_idx] = edit_val( 10, autoXSpam_mode[profile_idx], 0, 1, 1, 1); // Mode is 0 or 1
                 autoXSpam_speed             = edit_val( 11, autoXSpam_speed, 10, 200, 10, 50);
+                manualL1_doubletap_delay    = edit_val( 22, manualL1_doubletap_delay, 20, 500, 5, 25);
                 autoCoverExit_delay         = edit_val( 12, autoCoverExit_delay, 50, 500, 10, 50);
                 autoCoverExit_duration      = edit_val( 13, autoCoverExit_duration, 50, 500, 10, 50);
                 autoCoverExit_cooldown      = edit_val( 14, autoCoverExit_cooldown, 100, 2000, 50, 200);
@@ -1007,13 +1057,14 @@ if(!KillSwitch)
 				if(modName_idx == 4) vals_available( 7 , 7  );// StrafeShot
 					if(modName_idx == 5) vals_available( 8 , 8  );// Custom Sense
                     if(modName_idx == 6) vals_available( 9 , 9  );//Perfect Reload
-                    if(modName_idx == 17) vals_available( 16, 16 );//Pop Shot
-                    if(modName_idx == 18) vals_available( 20, 21 );//Shotgun Recoil
+                    if(modName_idx == 18) vals_available( 16, 16 );//Pop Shot
+                    if(modName_idx == 19) vals_available( 20, 21 );//Shotgun Recoil
                     if(modName_idx == 14) vals_available( 10, 11 );// Auto X Spam (Mode, Speed)
-					if(modName_idx == 15) vals_available( 12, 19 );// Auto Cover Exit (Delay, Duration, Cooldown, Mode)
-                if(modName_idx == 16) vals_available( 15, 15 );// Enhanced Stick (Threshold)
+                    if(modName_idx == 15) vals_available( 22, 22 );// Manual L1 (Tap Gap)
+                                   if(modName_idx == 16) vals_available( 12, 19 );// Auto Cover Exit (Delay, Duration, Cooldown, Mode)
+                if(modName_idx == 17) vals_available( 15, 15 );// Enhanced Stick (Threshold)
                 if(modName_idx == 7)  vals_available( 17, 17 );// AutoReload (Hold ms)
-				if(modName_idx == 15) {
+                                if(modName_idx == 16) {
 					if(valName_idx < 12) {
 						valName_idx = 19;
 					} else if(valName_idx > 19) {
@@ -1087,10 +1138,11 @@ if(!KillSwitch)
                 swap_on     = toggle( 12 , swap_on     );
                 inverted_on = toggle( 13 , inverted_on );
                 toggle_autoXSpam[profile_idx]     = toggle( 14, toggle_autoXSpam[profile_idx] );
-                toggle_autoCoverExit[profile_idx] = toggle( 15, toggle_autoCoverExit[profile_idx] );
-                toggle_enhancedStick[profile_idx] = toggle( 16, toggle_enhancedStick[profile_idx] );
-                toggle_popShot[profile_idx]       = toggle( 17, toggle_popShot[profile_idx] );
-                toggle_shotgunRecoil[profile_idx] = toggle( 18, toggle_shotgunRecoil[profile_idx] );
+                toggle_manualL1[profile_idx]      = toggle( 15, toggle_manualL1[profile_idx] );
+                toggle_autoCoverExit[profile_idx] = toggle( 16, toggle_autoCoverExit[profile_idx] );
+                toggle_enhancedStick[profile_idx] = toggle( 17, toggle_enhancedStick[profile_idx] );
+                toggle_popShot[profile_idx]       = toggle( 18, toggle_popShot[profile_idx] );
+                toggle_shotgunRecoil[profile_idx] = toggle( 19, toggle_shotgunRecoil[profile_idx] );
                 } // if NOT ModEdit BUT if ModMenu end
 		
 	// If ModMenu AND ModEdit
@@ -1152,39 +1204,51 @@ if(event_press(PS4_TOUCH)) {
 
 // === NEW: AUTO L1 SPAM CORE LOGIC ===
 if(ModMenu) {
-	// Ensure menu navigation does not leak the remapped action.
-	combo_stop(AUTO_SPAM_L1);
-	autoXSpam_just_pressed = FALSE;
-} else if(toggle_autoXSpam[profile_idx]) {
-	// --- Auto Mode ---
-	if(autoXSpam_master_on) {
-		// Check for pausing conditions (e.g., aiming down sights)
-		if (get_val(PS4_L2)) {
-			autoXSpam_paused = TRUE;
-		} else {
-			autoXSpam_paused = FALSE;
-		}
-		
-		// If not paused, run the spam combo (Classic Mode for now)
-		if(!autoXSpam_paused && autoXSpam_mode[profile_idx] == 0) {
-			combo_run(AUTO_SPAM_L1);
-		} else {
-			combo_stop(AUTO_SPAM_L1);
-		}
-	}
-	// --- Manual Mode ---
-	else {
-		// If the master toggle is OFF, enable manual spam-on-hold.
-		if(physical_L1) {
-			combo_run(AUTO_SPAM_L1);
-		} else {
-			combo_stop(AUTO_SPAM_L1);
-		}
-	}
+        // Ensure menu navigation does not leak the remapped action.
+        combo_stop(AUTO_SPAM_L1);
+        combo_stop(MANUAL_L1_DOUBLE_TAP);
+        autoXSpam_just_pressed = FALSE;
 } else {
-	// If the mod is toggled off for this profile entirely, ensure it's stopped.
-	combo_stop(AUTO_SPAM_L1);
-	autoXSpam_master_on = FALSE; // Also reset the master switch
+        if(toggle_autoXSpam[profile_idx]) {
+                // --- Auto Mode ---
+                if(autoXSpam_master_on) {
+                        // Check for pausing conditions (e.g., aiming down sights)
+                        if (get_val(PS4_L2)) {
+                                autoXSpam_paused = TRUE;
+                        } else {
+                                autoXSpam_paused = FALSE;
+                        }
+
+                        // If not paused, run the spam combo (Classic Mode for now)
+                        if(!autoXSpam_paused && autoXSpam_mode[profile_idx] == 0) {
+                                combo_run(AUTO_SPAM_L1);
+                        } else {
+                                combo_stop(AUTO_SPAM_L1);
+                        }
+                }
+                // --- Manual Mode ---
+                else {
+                        // If the master toggle is OFF, enable manual spam-on-hold.
+                        if(physical_L1) {
+                                combo_run(AUTO_SPAM_L1);
+                        } else {
+                                combo_stop(AUTO_SPAM_L1);
+                        }
+                }
+        } else {
+                // If the mod is toggled off for this profile entirely, ensure it's stopped.
+                combo_stop(AUTO_SPAM_L1);
+                autoXSpam_master_on = FALSE; // Also reset the master switch
+        }
+
+        // --- Manual L1 Double Tap ---
+        if(toggle_manualL1[profile_idx] && !toggle_autoXSpam[profile_idx]) {
+                if(physical_L1_just_pressed && !combo_running(MANUAL_L1_DOUBLE_TAP)) {
+                        combo_run(MANUAL_L1_DOUBLE_TAP);
+                }
+        } else {
+                combo_stop(MANUAL_L1_DOUBLE_TAP);
+        }
 }
 
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 
@@ -1640,6 +1704,7 @@ if(toggle_turboMelee [profile_idx] == 1) {
                         printf(center_x(sizeof(AUTO_STR) - 1, OLED_FONT_LARGE_WIDTH), 37, OLED_FONT_LARGE, OLED_WHITE, AUTO_STR[0]);
 					}
                     display_edit( 11, center_x(sizeof(AUTOXSPAM_SPEED) - 1, OLED_FONT_MEDIUM_WIDTH)   , AUTOXSPAM_SPEED[0]   , autoXSpam_speed                   );
+                    display_edit( 22, center_x(sizeof(MANUALL1_GAP) - 1, OLED_FONT_MEDIUM_WIDTH)      , MANUALL1_GAP[0]      , manualL1_doubletap_delay          );
                     display_edit( 12, center_x(sizeof(COVEREXIT_DELAY) - 1, OLED_FONT_MEDIUM_WIDTH)   , COVEREXIT_DELAY[0]   , autoCoverExit_delay               );
                     display_edit( 13, center_x(sizeof(COVEREXIT_DURATION) - 1, OLED_FONT_MEDIUM_WIDTH), COVEREXIT_DURATION[0], autoCoverExit_duration            );
                     display_edit( 14, center_x(sizeof(COVEREXIT_COOLDOWN) - 1, OLED_FONT_MEDIUM_WIDTH), COVEREXIT_COOLDOWN[0], autoCoverExit_cooldown            );
@@ -1687,14 +1752,15 @@ if(toggle_turboMelee [profile_idx] == 1) {
 				display_mod( 12 ,  center_x(sizeof(SWAP) - 1, OLED_FONT_MEDIUM_WIDTH)    		, SWAP[0]    , swap_on);
                 display_mod( 13 ,  center_x(sizeof(INVERTED) - 1, OLED_FONT_MEDIUM_WIDTH)		, INVERTED[0], inverted_on);
                 display_mod( 14 ,  center_x(sizeof(AUTO_X_SPAM) - 1, OLED_FONT_MEDIUM_WIDTH)    , AUTO_X_SPAM[0]    , toggle_autoXSpam[profile_idx] );
-                display_mod( 15 ,  center_x(sizeof(AUTO_COVER_EXIT) - 1, OLED_FONT_MEDIUM_WIDTH), AUTO_COVER_EXIT[0] , toggle_autoCoverExit[profile_idx] );
-                display_mod( 16 ,  center_x(sizeof(ENHANCED_STICK) - 1, OLED_FONT_MEDIUM_WIDTH) , ENHANCED_STICK[0]  , toggle_enhancedStick[profile_idx] );
-                display_mod( 17 ,  center_x(sizeof(POP_SHOT) - 1, OLED_FONT_MEDIUM_WIDTH)       , POP_SHOT[0]        , toggle_popShot[profile_idx] );
-                display_mod( 18 ,  center_x(sizeof(SHOTGUN_RECOIL) - 1, OLED_FONT_MEDIUM_WIDTH) , SHOTGUN_RECOIL[0]  , toggle_shotgunRecoil[profile_idx] );
+                display_mod( 15 ,  center_x(sizeof(MANUAL_L1) - 1, OLED_FONT_MEDIUM_WIDTH)      , MANUAL_L1[0]      , toggle_manualL1[profile_idx] );
+                display_mod( 16 ,  center_x(sizeof(AUTO_COVER_EXIT) - 1, OLED_FONT_MEDIUM_WIDTH), AUTO_COVER_EXIT[0] , toggle_autoCoverExit[profile_idx] );
+                display_mod( 17 ,  center_x(sizeof(ENHANCED_STICK) - 1, OLED_FONT_MEDIUM_WIDTH) , ENHANCED_STICK[0]  , toggle_enhancedStick[profile_idx] );
+                display_mod( 18 ,  center_x(sizeof(POP_SHOT) - 1, OLED_FONT_MEDIUM_WIDTH)       , POP_SHOT[0]        , toggle_popShot[profile_idx] );
+                display_mod( 19 ,  center_x(sizeof(SHOTGUN_RECOIL) - 1, OLED_FONT_MEDIUM_WIDTH) , SHOTGUN_RECOIL[0]  , toggle_shotgunRecoil[profile_idx] );
                 }
 		
 	// Display Profile only on mods that may have a different value depending on the Profile
-                if(modName_idx < AMOUNT_OF_MULTI_TOGGLE || modName_idx == 17 || modName_idx == 18)  // idx from 0 to 4 are mods that can have different values depending the active Profile
+                if(modName_idx < AMOUNT_OF_MULTI_TOGGLE || modName_idx == 14 || modName_idx == 15 || modName_idx == 16 || modName_idx == 17 || modName_idx == 18 || modName_idx == 19)  // idx from 0 to 4 are mods that can have different values depending the active Profile
 		{
 			if(profile_idx == 0) // profile_idx = profile_idx = Profile
     			//printf(center_x(sizeof(PROFILE_1) - 1, OLED_FONT_SMALL_WIDTH),23,OLED_FONT_SMALL,OLED_WHITE,PROFILE_1[0]); // print Profile 1
@@ -1974,6 +2040,17 @@ combo AUTO_SPAM_L1 {
         autoXSpam_just_pressed = FALSE;
         wait(autoXSpam_speed); // The user-configurable delay between presses.
     }
+
+// Manual L1 double tap combo
+combo MANUAL_L1_DOUBLE_TAP {
+        set_val(PS4_CROSS, 100);
+        wait(40);
+        set_val(PS4_CROSS, 0);
+        wait(manualL1_doubletap_delay);
+        set_val(PS4_CROSS, 100);
+        wait(40);
+        set_val(PS4_CROSS, 0);
+}
 
 // === NEW: AUTO-COVER EXIT ACTION COMBO ===
 combo AUTO_COVER_EXIT_ACTION {
@@ -2416,6 +2493,7 @@ function save () {
 packed_toggles = 0;
 // Pack Profile 1
 if(toggle_autoXSpam[0])      packed_toggles |= MASK_SPAM_P1;
+if(toggle_manualL1[0])       packed_toggles |= MASK_MANUALL1_P1;
 if(toggle_autoCoverExit[0])  packed_toggles |= MASK_COVEREXIT_P1;
 if(toggle_enhancedStick[0])  packed_toggles |= MASK_STICK_P1;
 if(autoCoverExit_mode[0])    packed_toggles |= MASK_COVEREXIT_MODE_P1;
@@ -2424,6 +2502,7 @@ if(toggle_popShot[0])        packed_toggles |= MASK_POPSHOT_P1;
 if(toggle_shotgunRecoil[0]) packed_toggles |= MASK_SHOTGUN_P1;
 // Pack Profile 2
 if(toggle_autoXSpam[1])      packed_toggles |= MASK_SPAM_P2;
+if(toggle_manualL1[1])       packed_toggles |= MASK_MANUALL1_P2;
 if(toggle_autoCoverExit[1])  packed_toggles |= MASK_COVEREXIT_P2;
 if(toggle_enhancedStick[1])  packed_toggles |= MASK_STICK_P2;
 if(autoCoverExit_mode[1])    packed_toggles |= MASK_COVEREXIT_MODE_P2;
@@ -2432,6 +2511,7 @@ if(toggle_popShot[1])        packed_toggles |= MASK_POPSHOT_P2;
 if(toggle_shotgunRecoil[1]) packed_toggles |= MASK_SHOTGUN_P2;
 // Pack Profile 3
 if(toggle_autoXSpam[2])      packed_toggles |= MASK_SPAM_P3;
+if(toggle_manualL1[2])       packed_toggles |= MASK_MANUALL1_P3;
 if(toggle_autoCoverExit[2])  packed_toggles |= MASK_COVEREXIT_P3;
 if(toggle_enhancedStick[2])  packed_toggles |= MASK_STICK_P3;
 if(autoCoverExit_mode[2])    packed_toggles |= MASK_COVEREXIT_MODE_P3;
@@ -2445,7 +2525,8 @@ if(autorun_l3_toggle_enabled) packed_toggles |= MASK_AUTORUN_L3;
 set_pvar(SPVAR_56, packed_toggles);
 
 // Save Global Values for New Features
-set_pvar(SPVAR_57, autoXSpam_speed);
+int spam_pack_save = (manualL1_doubletap_delay << 9) | autoXSpam_speed;
+set_pvar(SPVAR_57, spam_pack_save);
 set_pvar(SPVAR_58, autoCoverExit_delay);
 set_pvar(SPVAR_59, autoCoverExit_duration);
 set_pvar(SPVAR_60, autoCoverExit_cooldown);
