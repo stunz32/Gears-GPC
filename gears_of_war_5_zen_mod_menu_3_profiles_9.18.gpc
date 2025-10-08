@@ -1867,12 +1867,12 @@ combo SAVE {
 
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 
 
-		combo PERFECTRELOAD {
-	    wait(perfectreload_wait_ms);
-	    set_val(PS4_R1, 100);
-	    wait(40);
-	    set_val(PS4_R1, 0);
-	    }
+combo PERFECTRELOAD {
+        wait(perfectreload_wait_ms);
+        set_val(PS4_R1, 100);
+        wait(40);
+        set_val(PS4_R1, 0);
+}
 
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 
  
