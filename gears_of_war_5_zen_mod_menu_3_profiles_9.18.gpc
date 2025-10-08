@@ -508,6 +508,10 @@ data(
 	
 // Counter
 	int count_black; // for screen saver
+	int spam_pack;
+	int legacy_speed;
+	int popshot_pack;
+	int spam_pack_save;
 	
 // Double Tap
     int double_tap;
@@ -552,8 +556,8 @@ init{
     // One-time migration v2: bump Spam Speed default from 40 -> 80 only if still at old default
     migrated_v2 = get_pvar(SPVAR_63, 0, 1, 0);
     if(migrated_v2 == 0) {
-        int spam_pack = get_pvar(SPVAR_57, 0, 131071, 0);
-        int legacy_speed;
+        spam_pack = get_pvar(SPVAR_57, 0, 131071, 0);
+        legacy_speed = 0;
         if(spam_pack == 0) {
             legacy_speed = 40;
         } else if(spam_pack <= 200) {
@@ -743,7 +747,7 @@ init{
     if(packed_toggles & MASK_AUTORUN_L3) { autorun_l3_toggle_enabled = TRUE; } else { autorun_l3_toggle_enabled = FALSE; }
 
     // Load Global Values for New Features (using the available SPVAR slots)
-    int spam_pack = get_pvar(SPVAR_57, 0, 131071, (100 << 9) | 80);
+    spam_pack = get_pvar(SPVAR_57, 0, 131071, (100 << 9) | 80);
     if(spam_pack <= 200) {
         autoXSpam_speed = spam_pack;
         if(autoXSpam_speed < 10 || autoXSpam_speed > 200) {
@@ -764,7 +768,7 @@ init{
     autoCoverExit_duration   = get_pvar(SPVAR_59, 50, 500, 150);
     autoCoverExit_cooldown   = get_pvar(SPVAR_60, 100, 2000, 500);
     enhancedStick_threshold  = get_pvar(SPVAR_61, 10, 95, 30);
-    int popshot_pack = get_pvar(SPVAR_64, 0, 262143, (120 << 9) | 80);
+    popshot_pack = get_pvar(SPVAR_64, 0, 262143, (120 << 9) | 80);
     if(popshot_pack <= 500) {
         popShot_hold_ms = popshot_pack;
         shotgun_recoil_time_ms = 120;
@@ -2526,7 +2530,7 @@ if(autorun_l3_toggle_enabled) packed_toggles |= MASK_AUTORUN_L3;
 set_pvar(SPVAR_56, packed_toggles);
 
 // Save Global Values for New Features
-int spam_pack_save = (manualL1_doubletap_delay << 9) | autoXSpam_speed;
+spam_pack_save = (manualL1_doubletap_delay << 9) | autoXSpam_speed;
 set_pvar(SPVAR_57, spam_pack_save);
 set_pvar(SPVAR_58, autoCoverExit_delay);
 set_pvar(SPVAR_59, autoCoverExit_duration);
@@ -2547,7 +2551,7 @@ set_pvar(SPVAR_60, autoCoverExit_cooldown);
     if(popShot_hold_ms > 500) popShot_hold_ms = 500;
     if(shotgun_recoil_time_ms < 10) shotgun_recoil_time_ms = 10;
     if(shotgun_recoil_time_ms > 500) shotgun_recoil_time_ms = 500;
-    int popshot_pack = ((shotgun_recoil_time_ms & 0x1FF) << 9) | (popShot_hold_ms & 0x1FF);
+    popshot_pack = ((shotgun_recoil_time_ms & 0x1FF) << 9) | (popShot_hold_ms & 0x1FF);
     set_pvar(SPVAR_64, popshot_pack);
     set_pvar(SPVAR_63, autoReload_hold_ms);
 
