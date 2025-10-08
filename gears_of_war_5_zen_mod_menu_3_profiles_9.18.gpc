@@ -154,9 +154,9 @@ Wall Bounce - 					- Bounce walls when running.
 	const string OFF = "OFF"; 
 	const string ON = "ON"; 
 	const string SAVE= "SAVED";
-	const string PROFILE_1 = "Profile 1": // or primary weapon
-	const string PROFILE_2 = "Profile 2": // or secondary weapon
-	const string PROFILE_3 = "Profile 3": // or handgun
+	const string PROFILE_1 = "Profile 1"; // or primary weapon
+	const string PROFILE_2 = "Profile 2"; // or secondary weapon
+	const string PROFILE_3 = "Profile 3"; // or handgun
 	
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 
 
@@ -164,7 +164,7 @@ Wall Bounce - 					- Bounce walls when running.
 	const string ANTIRECOIL 		= "AntiRecoil";		 // modName_idx = 0
 	const string RAPIDFIRE 			= "RapidFire";       // modName_idx = 1
 	const string BURSTFIRE 			= "BurstFire";       // modName_idx = 2
-	const string AIMASSIST 			= "AIM Assist"       // modName_idx = 3 		
+	const string AIMASSIST 			= "AIM Assist";      // modName_idx = 3 		
 	const string STRAFE_SHOT 		= "StrafeShot";      // modName_idx = 4
 	const string CUSTOM_SENSE		= "CustomSense";	 // modName_idx = 5
 	const string PERFECT_RELOAD		= "Perf.Reload";	 // modName_idx = 6
@@ -799,7 +799,7 @@ main {
 	set_val(TRACE_2, valName_idx); 
 	set_val(TRACE_3, profile_idx);
 	set_val(TRACE_4, count_black);
-	set_val(TRACE_5, (PS4_L2) + (PS4_OPTIONS))
+	set_val(TRACE_5, (PS4_L2) + (PS4_OPTIONS));
 	
 	// === NEW: BUTTON REMAPPING LOGIC START ===
 	// This MUST be at the top of the main loop.
@@ -1857,7 +1857,7 @@ combo RUMBLE_OFF {						// 1 high rumble + red blink 1 time
 combo SAVE { 
 	cls_oled(0);						// clear OLED screen 
 	printf(center_x(sizeof(SAVE) - 1,OLED_FONT_LARGE_WIDTH),center_y(OLED_FONT_LARGE_HEIGHT),OLED_FONT_LARGE,OLED_WHITE,SAVE[0]); 	// display SAVED... centered in X Y 
-	wait(10)
+	wait(10);
 	call(RUMBLE_ON);					// 2 high rumbles + green blink 2 times								
 	wait(150);
 	call(RUMBLE_ON);					// 2 high rumbles + green blink 2 times	
@@ -1890,19 +1890,26 @@ combo ANTIRECOIL {
 }
 
 combo SHOTGUN_RECOIL {
-    if(shotgun_recoil_timer <= 0) {
-        shotgun_recoil_timer = 0;
-    } else {
-        shotgun_recoil_step = shotgun_recoil_timer;
-        if(shotgun_recoil_step > 10) shotgun_recoil_step = 10;
-        if(shotgun_recoil_step <= 0) shotgun_recoil_step = 1;
-        shotgun_recoil_output = get_val(PS4_RY) + shotgun_recoil_strength;
-        if(shotgun_recoil_output > 100) shotgun_recoil_output = 100;
-        if(shotgun_recoil_output < -100) shotgun_recoil_output = -100;
-        set_val(PS4_RY, shotgun_recoil_output);
-        wait(shotgun_recoil_step);
+    // Clamp a 1..10ms slice; even when timer is 0 we'll do a 1ms no-op slice (harmless)
+    shotgun_recoil_step = shotgun_recoil_timer;
+    if(shotgun_recoil_step > 10) shotgun_recoil_step = 10;
+    if(shotgun_recoil_step <= 0) shotgun_recoil_step = 1;
+
+    // Apply the vertical pulse
+    shotgun_recoil_output = get_val(PS4_RY) + shotgun_recoil_strength;
+    if(shotgun_recoil_output > 100) shotgun_recoil_output = 100;
+    if(shotgun_recoil_output < -100) shotgun_recoil_output = -100;
+    set_val(PS4_RY, shotgun_recoil_output);
+
+    // TOP-LEVEL wait (valid in GPC)
+    wait(shotgun_recoil_step);
+
+    // Update timer and loop if needed
+    if(shotgun_recoil_timer > 0) {
         shotgun_recoil_timer -= shotgun_recoil_step;
         if(shotgun_recoil_timer > 0) combo_restart(SHOTGUN_RECOIL);
+    } else {
+        shotgun_recoil_timer = 0;
     }
 }
  
@@ -1968,8 +1975,8 @@ combo CROUCHSHOT {
 combo AUTORELOAD {
     wait(200);
     set_val(PS4_R1,100);
- 	call(PERFECTRELOAD)
-    }
+    call(PERFECTRELOAD);
+}
 	
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜
 
