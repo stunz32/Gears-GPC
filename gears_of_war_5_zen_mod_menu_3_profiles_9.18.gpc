@@ -325,6 +325,9 @@ int enhancedStick_threshold;   // Activation threshold (e.g., 30%) (global)
 
 // --- Bitpacking Helper Variable ---
 int packed_toggles;            // Temporary variable for unpacking SPVAR data
+int pack63;
+int raw63;
+int backA_window_tens;
 
 // --- Button Remapping Helper Variables ---
 int physical_L1;               // Store physical L1 state before remapping
@@ -819,9 +822,9 @@ init{
     if(shotgun_recoil_time_ms < 10) shotgun_recoil_time_ms = 120;
     if(shotgun_recoil_time_ms > 500) shotgun_recoil_time_ms = 500;
     // AutoReload hold-time and Back A window persistence (packed in SPVAR_63)
-    int pack63 = get_pvar(SPVAR_63, 0, 2147483647, 2);
+    pack63 = get_pvar(SPVAR_63, 0, 2147483647, 2);
     if(!(migration_flags & MIG_FLAG_BACKA_PACK)) {
-        int raw63 = pack63;
+        raw63 = pack63;
         if(raw63 <= 2) {
             autoReload_hold_ms = 1000;
             backA_window_ms    = 1000;
@@ -831,7 +834,7 @@ init{
             if(autoReload_hold_ms > 5000) autoReload_hold_ms = 5000;
             backA_window_ms = 1000;
         }
-        int backA_window_tens = backA_window_ms / 10;
+        backA_window_tens = backA_window_ms / 10;
         pack63 = (autoReload_hold_ms & 0x1FFF) | ((backA_window_tens & 0x3FF) << 13);
         set_pvar(SPVAR_63, pack63);
         migration_flags |= MIG_FLAG_BACKA_PACK;
@@ -1758,7 +1761,7 @@ if(toggle_turboMelee [profile_idx] == 1) {
 	if(toggle_rapidfire[profile_idx] == 1)
 	{
 	// Rate of Fire Calculation
-    	hold_time = 500 / (VALUES[profile_idx][4] + rate_of_fire[profile_idx]); 
+           hold_time = 500 / (VALUES[profile_idx][2] + rate_of_fire[profile_idx]);
    		rest_time = hold_time - 20;
     	if(rest_time < 0) rest_time = 0;
     
@@ -2714,10 +2717,10 @@ set_pvar(SPVAR_60, autoCoverExit_cooldown);
     popshot_pack = ((shotgun_recoil_time_ms & 0x1FF) << 9) | (popShot_hold_ms & 0x1FF);
     set_pvar(SPVAR_64, popshot_pack);
     {
-        int backA_window_tens = backA_window_ms / 10;
+        backA_window_tens = backA_window_ms / 10;
         if(backA_window_tens < 0) backA_window_tens = 0;
         if(backA_window_tens > 1023) backA_window_tens = 1023;
-        int pack63 = (autoReload_hold_ms & 0x1FFF) | ((backA_window_tens & 0x3FF) << 13);
+        pack63 = (autoReload_hold_ms & 0x1FFF) | ((backA_window_tens & 0x3FF) << 13);
         set_pvar(SPVAR_63, pack63);
     }
 
