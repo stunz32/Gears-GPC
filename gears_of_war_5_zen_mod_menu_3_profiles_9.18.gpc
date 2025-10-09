@@ -1725,7 +1725,11 @@ if(toggle_turboMelee [profile_idx] == 1) {
         if(toggle_popShot[profile_idx] && event_press(PS4_R2)) {
             combo_run(POP_SHOT_L2_HOLD);
         }
-        if(toggle_shotgunRecoil[profile_idx] && !get_val(PS4_L2) && event_press(PS4_R2)) {
+        // Shotgun pulse: ONLY hip fire, and NEVER when Pop Shot feature is enabled
+        if(toggle_shotgunRecoil[profile_idx]
+        && !toggle_popShot[profile_idx]
+        && !get_val(PS4_L2)
+        && event_press(PS4_R2)) {
             if(shotgun_recoil_vertical[profile_idx] > 0 && shotgun_recoil_time_ms > 0) {
                 combo_stop(SHOTGUN_RECOIL);
                 shotgun_recoil_timer = shotgun_recoil_time_ms;
@@ -1744,14 +1748,25 @@ if(toggle_turboMelee [profile_idx] == 1) {
 // If Anti-Recoil is enable for the active profile
 		
 		
-	if(toggle_antirecoil[profile_idx] == 1)
-			combo_run (ANTIRECOIL); 
-	{
-		if(toggle_burstfire[profile_idx] != 1 && get_val(PS4_L2) && get_val(PS4_R2) || toggle_burstfire[profile_idx] == 1 && get_val(PS4_R2) && get_ptime(PS4_R2) <= hold_time)
-			combo_run(ANTIRECOIL);
-		else
-			combo_stop(ANTIRECOIL);
-	}
+        if(toggle_antirecoil[profile_idx] == 1) {
+            if(!combo_running(SHOTGUN_RECOIL)) {
+                if((toggle_burstfire[profile_idx] != 1
+                && get_val(PS4_L2)
+                && get_val(PS4_R2)
+                && !combo_running(POP_SHOT_L2_HOLD))
+                || (toggle_burstfire[profile_idx] == 1
+                && get_val(PS4_R2)
+                && (get_ptime(PS4_R2) <= hold_time))) {
+                    combo_run(ANTIRECOIL);
+                } else {
+                    combo_stop(ANTIRECOIL);
+                }
+            } else {
+                combo_stop(ANTIRECOIL);
+            }
+        } else {
+            combo_stop(ANTIRECOIL);
+        }
 
   /*— ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌
   |                                                    RAPID FIRE (1)                                                     |
