@@ -182,14 +182,16 @@ Wall Bounce - 					- Bounce walls when running.
             const string POP_SHOT           = "Pop Shot";        // modName_idx = 18
             const string SHOTGUN_RECOIL     = "ShotgunAR";       // modName_idx = 19
 
+        const string BACK_A                    = "Back A";             // modName_idx = 20
+
 // Index to find Mod Name string - switchable in game with left/right in ModMenu 
 	int modName_idx;
 
 // modName # of the last Mod Name string - Used for cycle modName_idx
-        define LAST_MODNAME_STRING = 19;
+        define LAST_MODNAME_STRING = 20;
 
 // # of the last modName_idx that has a value that can be edited
-        define LAST_EDITABLE_STRING = 19;
+        define LAST_EDITABLE_STRING = 20;
 	
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 
 
@@ -232,6 +234,14 @@ Wall Bounce - 					- Bounce walls when running.
         const string SHOTGUN_VERTICAL   = "SG Vertical";     // valName_idx = 20
         const string SHOTGUN_DURATION   = "SG Dur ms";       // valName_idx = 21
 
+        const string BACKA_WINDOW      = "BA Window";     // valName_idx = 23
+        const string BACKA_MAG         = "BA Magn.";      // valName_idx = 24
+        const string BACKA_PRE         = "BA Pre ms";     // valName_idx = 25
+        const string BACKA_PRESS       = "BA Press";      // valName_idx = 26
+        const string BACKA_COOLDOWN    = "BA Cooldn";    // valName_idx = 27
+        const string BACKA_REUSE_R2    = "BA ReuseR2";    // valName_idx = 28
+        const string BACKA_CONSUME     = "BA Consume";    // valName_idx = 29
+
         // Text for special display cases
         const string CLASSIC_STR        = "Classic";
         const string AUTO_STR           = "Auto";
@@ -241,7 +251,7 @@ Wall Bounce - 					- Bounce walls when running.
 	int valName_idx;
 	int prev_valName_idx;
 	
-    define AMOUNT_OF_VALNAME_IDX = 22;
+    define AMOUNT_OF_VALNAME_IDX = 29;
 
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 
 
@@ -347,6 +357,25 @@ int easyPing_ads_active;        // TRUE while ADS is held for Easy Ping
     int autoReload_hold_ms;        // Global minimum hold time for R2 (ms)
     int autoReload_ready;          // TRUE once hold threshold met until release
 
+// --- Back A (L1→R2 windowed combo) ---
+int toggle_backA[3];          // per-profile toggle
+int backA_window_ms;          // detection window (ms)
+int backA_stick_mag;          // LY back magnitude (0..100)
+int backA_pre_ms;             // pre-back hold before pressing buttons
+int backA_press_ms;           // ✕+R2 press duration
+int backA_cooldown_ms;        // lockout after combo
+int backA_reuse_r2;           // 0=re-tap R2 in combo, 1=reuse existing R2 hold
+int backA_consume_inputs;     // 0=pass-through original presses, 1=suppress during combo
+
+int backA_armed;              // TRUE after L1 press until window expires or fires
+int backA_window_timer;       // countdown in ms
+int backA_cooldown_timer;     // cooldown ms after firing
+int backA_active;             // TRUE while BACK_A_COMBO is running
+
+int physical_R2;              // Store physical R2 state before remapping
+int prev_physical_R2;         // Previous loop's physical R2 state (tap detection)
+int physical_R2_just_pressed; // TRUE for the tick the player taps R2
+
     // --- AutoRun State ---
     int autorun_active;            // TRUE when autorun is engaged
     int autorun_debounce_timer;    // accumulates ms while forward intent is held
@@ -410,11 +439,16 @@ define MASK_SHOTGUN_P3 = 2097152;  // bit 21
 define MASK_MANUALL1_P1 = 4194304;   // bit 22
 define MASK_MANUALL1_P2 = 8388608;   // bit 23
 define MASK_MANUALL1_P3 = 16777216;  // bit 24
+// Back A per-profile toggles
+define MASK_BACKA_P1 = 33554432;   // bit 25
+define MASK_BACKA_P2 = 67108864;   // bit 26
+define MASK_BACKA_P3 = 134217728;  // bit 27
 // Migration flag bits
 define MIG_FLAG_STICK_RESET      = 1;
 define MIG_FLAG_EASYPING_DEFAULT = 2;
 define MIG_FLAG_AUTORUN_DEFAULT  = 4;
 define MIG_FLAG_PR1_DEFAULT      = 8;
+define MIG_FLAG_BACKA_PACK       = 16;
 		
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 
 
@@ -670,14 +704,14 @@ init{
     packed_toggles = get_pvar(
         SPVAR_56,
         0,
-        33554431,
+        2147483647,
         (MASK_SPAM_P1 | MASK_COVEREXIT_P1 |
          MASK_SPAM_P2 | MASK_COVEREXIT_P2 |
          MASK_SPAM_P3 | MASK_COVEREXIT_P3 |
          MASK_AUTORUN_L3)
     );
 
-    migration_flags = get_pvar(SPVAR_11, 0, 15, 0);
+    migration_flags = get_pvar(SPVAR_11, 0, 31, 0);
     migration_flags_original = migration_flags;
     if(!(migration_flags & MIG_FLAG_STICK_RESET)) {
         // Backward compatibility: if all Stick Xcel bits were set by the old default, clear them once.
@@ -724,6 +758,7 @@ init{
     if(packed_toggles & MASK_SPAMMODE_P1) { autoXSpam_mode[0] = 1; } else { autoXSpam_mode[0] = 0; }
     if(packed_toggles & MASK_POPSHOT_P1) { toggle_popShot[0] = TRUE; } else { toggle_popShot[0] = FALSE; }
     if(packed_toggles & MASK_SHOTGUN_P1) { toggle_shotgunRecoil[0] = TRUE; } else { toggle_shotgunRecoil[0] = FALSE; }
+    if(packed_toggles & MASK_BACKA_P1) { toggle_backA[0] = TRUE; } else { toggle_backA[0] = FALSE; }
 
     // --- Unpack Profile 2 Toggles ---
     if(packed_toggles & MASK_SPAM_P2) { toggle_autoXSpam[1] = TRUE; } else { toggle_autoXSpam[1] = FALSE; }
@@ -734,6 +769,7 @@ init{
     if(packed_toggles & MASK_SPAMMODE_P2) { autoXSpam_mode[1] = 1; } else { autoXSpam_mode[1] = 0; }
     if(packed_toggles & MASK_POPSHOT_P2) { toggle_popShot[1] = TRUE; } else { toggle_popShot[1] = FALSE; }
     if(packed_toggles & MASK_SHOTGUN_P2) { toggle_shotgunRecoil[1] = TRUE; } else { toggle_shotgunRecoil[1] = FALSE; }
+    if(packed_toggles & MASK_BACKA_P2) { toggle_backA[1] = TRUE; } else { toggle_backA[1] = FALSE; }
 
     // --- Unpack Profile 3 Toggles ---
     if(packed_toggles & MASK_SPAM_P3) { toggle_autoXSpam[2] = TRUE; } else { toggle_autoXSpam[2] = FALSE; }
@@ -744,6 +780,7 @@ init{
     if(packed_toggles & MASK_SPAMMODE_P3) { autoXSpam_mode[2] = 1; } else { autoXSpam_mode[2] = 0; }
     if(packed_toggles & MASK_POPSHOT_P3) { toggle_popShot[2] = TRUE; } else { toggle_popShot[2] = FALSE; }
     if(packed_toggles & MASK_SHOTGUN_P3) { toggle_shotgunRecoil[2] = TRUE; } else { toggle_shotgunRecoil[2] = FALSE; }
+    if(packed_toggles & MASK_BACKA_P3) { toggle_backA[2] = TRUE; } else { toggle_backA[2] = FALSE; }
     // --- Unpack Global: AutoRun L3 Toggle ---
     if(packed_toggles & MASK_AUTORUN_L3) { autorun_l3_toggle_enabled = TRUE; } else { autorun_l3_toggle_enabled = FALSE; }
 
@@ -781,15 +818,50 @@ init{
     if(popShot_hold_ms > 500) popShot_hold_ms = 500;
     if(shotgun_recoil_time_ms < 10) shotgun_recoil_time_ms = 120;
     if(shotgun_recoil_time_ms > 500) shotgun_recoil_time_ms = 500;
-    // AutoReload hold-time (default 1000ms)
-    // Store AutoReload hold time in SPVAR_63 to avoid exceeding SPVAR range.
-    // Read raw first to handle legacy migration values (0..2), then clamp to range.
-    autoReload_hold_ms       = get_pvar(SPVAR_63, 0, 32767, 2);
-    if(autoReload_hold_ms <= 2) autoReload_hold_ms = 1000; // default if only migration flag is present
-    if(autoReload_hold_ms < 100) autoReload_hold_ms = 100;
-    if(autoReload_hold_ms > 5000) autoReload_hold_ms = 5000;
+    // AutoReload hold-time and Back A window persistence (packed in SPVAR_63)
+    int pack63 = get_pvar(SPVAR_63, 0, 2147483647, 2);
+    if(!(migration_flags & MIG_FLAG_BACKA_PACK)) {
+        int raw63 = pack63;
+        if(raw63 <= 2) {
+            autoReload_hold_ms = 1000;
+            backA_window_ms    = 1000;
+        } else {
+            autoReload_hold_ms = raw63;
+            if(autoReload_hold_ms < 100) autoReload_hold_ms = 100;
+            if(autoReload_hold_ms > 5000) autoReload_hold_ms = 5000;
+            backA_window_ms = 1000;
+        }
+        int backA_window_tens = backA_window_ms / 10;
+        pack63 = (autoReload_hold_ms & 0x1FFF) | ((backA_window_tens & 0x3FF) << 13);
+        set_pvar(SPVAR_63, pack63);
+        migration_flags |= MIG_FLAG_BACKA_PACK;
+        set_pvar(SPVAR_11, migration_flags);
+    } else {
+        autoReload_hold_ms =  pack63         & 0x1FFF;
+        backA_window_ms    = ((pack63 >> 13) & 0x3FF) * 10;
+        if(autoReload_hold_ms < 100) autoReload_hold_ms = 100;
+        if(autoReload_hold_ms > 5000) autoReload_hold_ms = 5000;
+        if(backA_window_ms < 100) backA_window_ms = 100;
+        if(backA_window_ms > 5000) backA_window_ms = 5000;
+    }
     autoReload_ready         = FALSE;
+
+    if(backA_stick_mag <= 0 || backA_stick_mag > 100) backA_stick_mag = 100;
+    if(backA_pre_ms < 0 || backA_pre_ms > 500) backA_pre_ms = 60;
+    if(backA_press_ms < 10 || backA_press_ms > 200) backA_press_ms = 60;
+    if(backA_cooldown_ms < 0 || backA_cooldown_ms > 2000) backA_cooldown_ms = 250;
+    if(backA_reuse_r2 != 0 && backA_reuse_r2 != 1) backA_reuse_r2 = 0;
+    if(backA_consume_inputs != 0 && backA_consume_inputs != 1) backA_consume_inputs = 1;
+    if(backA_consume_inputs == 0) backA_consume_inputs = 1;
+    backA_armed = FALSE;
+    backA_active = FALSE;
+    backA_cooldown_timer = 0;
+    backA_window_timer = 0;
+    prev_physical_R2 = 0;
+    physical_R2 = 0;
+    physical_R2_just_pressed = FALSE;
 }
+
 
 							/*— ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌
 							|                                                     MAIN SECTION                                                      |
@@ -809,6 +881,9 @@ main {
         prev_physical_L1 = physical_L1;
         physical_L1 = get_val(PS4_L1);
         physical_L1_just_pressed = physical_L1 && !prev_physical_L1;
+        prev_physical_R2 = physical_R2;
+        physical_R2 = get_val(PS4_R2);
+        physical_R2_just_pressed = physical_R2 && !prev_physical_R2;
         physical_CROSS = get_val(PS4_CROSS);
         physical_TRIANGLE = get_val(PS4_TRIANGLE);
         physical_SQUARE = get_val(PS4_SQUARE);
@@ -847,6 +922,45 @@ main {
 	}
 	// === NEW: BUTTON REMAPPING LOGIC END ===
 	
+	// === BACK A TRIGGER: L1 → (within window) → R2 ===
+	if(!ModMenu && toggle_backA[profile_idx]) {
+	    if(backA_cooldown_timer > 0) {
+	        backA_cooldown_timer -= get_rtime();
+	        if(backA_cooldown_timer < 0) backA_cooldown_timer = 0;
+	    }
+
+	    if(physical_L1_just_pressed) {
+	        backA_armed = TRUE;
+	        backA_window_timer = backA_window_ms;
+	    }
+
+	    if(backA_armed) {
+	        backA_window_timer -= get_rtime();
+	        if(backA_window_timer <= 0) {
+	            backA_window_timer = 0;
+	            backA_armed = FALSE;
+	        }
+	    }
+
+	    if(backA_armed && physical_R2_just_pressed && backA_cooldown_timer == 0) {
+	        backA_armed = FALSE;
+	        backA_window_timer = 0;
+	        backA_cooldown_timer = backA_cooldown_ms;
+
+	        combo_stop(RAPIDFIRE);
+	        combo_stop(BURSTFIRE);
+
+	        combo_run(BACK_A_COMBO);
+	    }
+
+	    if(backA_consume_inputs && backA_active) {
+	        set_val(PS4_L1, 0);
+	        if(!backA_reuse_r2) {
+	            set_val(PS4_R2, 0);
+	        }
+	    }
+	}
+
 // 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜 〜
 // Crossover
     if(get_controller() != PIO_PS4) // If XBOX controller:
@@ -1033,6 +1147,13 @@ if(!KillSwitch)
                 shotgun_recoil_time_ms      = edit_val( 21, shotgun_recoil_time_ms, 10, 500, 5, 25);
                 autoReload_hold_ms          = edit_val( 17, autoReload_hold_ms, 100, 5000, 10, 100);
                 autorun_l3_toggle_enabled   = edit_val( 18, autorun_l3_toggle_enabled, 0, 1, 1, 1);
+                backA_window_ms             = edit_val( 23, backA_window_ms, 100, 5000, 10, 100);
+                backA_stick_mag             = edit_val( 24, backA_stick_mag, 0, 100, 1, 10);
+                backA_pre_ms                = edit_val( 25, backA_pre_ms, 0, 500, 5, 25);
+                backA_press_ms              = edit_val( 26, backA_press_ms, 10, 200, 5, 25);
+                backA_cooldown_ms           = edit_val( 27, backA_cooldown_ms, 0, 2000, 10, 100);
+                backA_reuse_r2              = edit_val( 28, backA_reuse_r2, 0, 1, 1, 1);
+                backA_consume_inputs        = edit_val( 29, backA_consume_inputs, 0, 1, 1, 1);
 			}
 
             /*— ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌
@@ -1065,6 +1186,7 @@ if(!KillSwitch)
                     if(modName_idx == 6) vals_available( 9 , 9  );//Perfect Reload
                     if(modName_idx == 18) vals_available( 16, 16 );//Pop Shot
                     if(modName_idx == 19) vals_available( 20, 21 );//Shotgun Recoil
+                    if(modName_idx == 20) vals_available( 23, 29 );//Back A
                     if(modName_idx == 14) vals_available( 10, 11 );// Auto X Spam (Mode, Speed)
                     if(modName_idx == 15) vals_available( 22, 22 );// Manual L1 (Tap Gap)
                                    if(modName_idx == 16) vals_available( 12, 19 );// Auto Cover Exit (Delay, Duration, Cooldown, Mode)
@@ -1149,6 +1271,7 @@ if(!KillSwitch)
                 toggle_enhancedStick[profile_idx] = toggle( 17, toggle_enhancedStick[profile_idx] );
                 toggle_popShot[profile_idx]       = toggle( 18, toggle_popShot[profile_idx] );
                 toggle_shotgunRecoil[profile_idx] = toggle( 19, toggle_shotgunRecoil[profile_idx] );
+                toggle_backA[profile_idx]        = toggle( 20, toggle_backA[profile_idx] );
                 } // if NOT ModEdit BUT if ModMenu end
 		
 	// If ModMenu AND ModEdit
@@ -1726,6 +1849,13 @@ if(toggle_turboMelee [profile_idx] == 1) {
                     display_edit( 15, center_x(sizeof(STICK_THRESHOLD) - 1, OLED_FONT_MEDIUM_WIDTH)   , STICK_THRESHOLD[0]   , enhancedStick_threshold           );
                     display_edit( 17, center_x(sizeof(AUTORELOAD_HOLD) - 1, OLED_FONT_MEDIUM_WIDTH)   , AUTORELOAD_HOLD[0]   , autoReload_hold_ms                );
                     display_edit( 21, center_x(sizeof(SHOTGUN_DURATION) - 1, OLED_FONT_MEDIUM_WIDTH)  , SHOTGUN_DURATION[0]  , shotgun_recoil_time_ms            );
+                    display_edit( 23, center_x(sizeof(BACKA_WINDOW) - 1, OLED_FONT_MEDIUM_WIDTH)   , BACKA_WINDOW[0]   , backA_window_ms             );
+                    display_edit( 24, center_x(sizeof(BACKA_MAG) - 1, OLED_FONT_MEDIUM_WIDTH)      , BACKA_MAG[0]      , backA_stick_mag             );
+                    display_edit( 25, center_x(sizeof(BACKA_PRE) - 1, OLED_FONT_MEDIUM_WIDTH)      , BACKA_PRE[0]      , backA_pre_ms                );
+                    display_edit( 26, center_x(sizeof(BACKA_PRESS) - 1, OLED_FONT_MEDIUM_WIDTH)    , BACKA_PRESS[0]    , backA_press_ms              );
+                    display_edit( 27, center_x(sizeof(BACKA_COOLDOWN) - 1, OLED_FONT_MEDIUM_WIDTH) , BACKA_COOLDOWN[0] , backA_cooldown_ms           );
+                    display_edit( 28, center_x(sizeof(BACKA_REUSE_R2) - 1, OLED_FONT_MEDIUM_WIDTH) , BACKA_REUSE_R2[0] , backA_reuse_r2              );
+                    display_edit( 29, center_x(sizeof(BACKA_CONSUME) - 1, OLED_FONT_MEDIUM_WIDTH)  , BACKA_CONSUME[0]  , backA_consume_inputs        );
                     // Special-case: Show L3 Toggle as ON/OFF text instead of 0/1
                     if(valName_idx == 18) {
                         printf(center_x(sizeof(AUTORUN_L3_TOGGLE) - 1, OLED_FONT_MEDIUM_WIDTH), 0, OLED_FONT_MEDIUM, OLED_WHITE, AUTORUN_L3_TOGGLE[0]);
@@ -1763,10 +1893,11 @@ if(toggle_turboMelee [profile_idx] == 1) {
                 display_mod( 17 ,  center_x(sizeof(ENHANCED_STICK) - 1, OLED_FONT_MEDIUM_WIDTH) , ENHANCED_STICK[0]  , toggle_enhancedStick[profile_idx] );
                 display_mod( 18 ,  center_x(sizeof(POP_SHOT) - 1, OLED_FONT_MEDIUM_WIDTH)       , POP_SHOT[0]        , toggle_popShot[profile_idx] );
                 display_mod( 19 ,  center_x(sizeof(SHOTGUN_RECOIL) - 1, OLED_FONT_MEDIUM_WIDTH) , SHOTGUN_RECOIL[0]  , toggle_shotgunRecoil[profile_idx] );
+                display_mod( 20 ,  center_x(sizeof(BACK_A) - 1, OLED_FONT_MEDIUM_WIDTH)          , BACK_A[0]          , toggle_backA[profile_idx] );
                 }
 		
 	// Display Profile only on mods that may have a different value depending on the Profile
-                if(modName_idx < AMOUNT_OF_MULTI_TOGGLE || modName_idx == 14 || modName_idx == 15 || modName_idx == 16 || modName_idx == 17 || modName_idx == 18 || modName_idx == 19)  // idx from 0 to 4 are mods that can have different values depending the active Profile
+                if(modName_idx < AMOUNT_OF_MULTI_TOGGLE || modName_idx == 14 || modName_idx == 15 || modName_idx == 16 || modName_idx == 17 || modName_idx == 18 || modName_idx == 19 || modName_idx == 20)  // idx from 0 to 4 are mods that can have different values depending the active Profile
 		{
 			if(profile_idx == 0) // profile_idx = profile_idx = Profile
     			//printf(center_x(sizeof(PROFILE_1) - 1, OLED_FONT_SMALL_WIDTH),23,OLED_FONT_SMALL,OLED_WHITE,PROFILE_1[0]); // print Profile 1
@@ -2094,6 +2225,24 @@ combo POP_SHOT_L2_HOLD {
     set_val(PS4_L2, 100);
     wait(popShot_hold_ms);
     set_val(PS4_L2, 0);
+}
+
+combo BACK_A_COMBO {
+    backA_active = TRUE;
+
+    set_val(PS4_LY, backA_stick_mag);
+    wait(backA_pre_ms);
+
+    if(!backA_reuse_r2) set_val(PS4_R2, 100);
+    set_val(PS4_CROSS, 100);
+
+    wait(backA_press_ms);
+
+    set_val(PS4_CROSS, 0);
+    if(!backA_reuse_r2) set_val(PS4_R2, 0);
+    set_val(PS4_LY, 0);
+
+    backA_active = FALSE;
 }
 
   /*— ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌ — ◌
@@ -2513,6 +2662,7 @@ if(autoCoverExit_mode[0])    packed_toggles |= MASK_COVEREXIT_MODE_P1;
 if(autoXSpam_mode[0])        packed_toggles |= MASK_SPAMMODE_P1;
 if(toggle_popShot[0])        packed_toggles |= MASK_POPSHOT_P1;
 if(toggle_shotgunRecoil[0]) packed_toggles |= MASK_SHOTGUN_P1;
+if(toggle_backA[0])        packed_toggles |= MASK_BACKA_P1;
 // Pack Profile 2
 if(toggle_autoXSpam[1])      packed_toggles |= MASK_SPAM_P2;
 if(toggle_manualL1[1])       packed_toggles |= MASK_MANUALL1_P2;
@@ -2522,6 +2672,7 @@ if(autoCoverExit_mode[1])    packed_toggles |= MASK_COVEREXIT_MODE_P2;
 if(autoXSpam_mode[1])        packed_toggles |= MASK_SPAMMODE_P2;
 if(toggle_popShot[1])        packed_toggles |= MASK_POPSHOT_P2;
 if(toggle_shotgunRecoil[1]) packed_toggles |= MASK_SHOTGUN_P2;
+if(toggle_backA[1])        packed_toggles |= MASK_BACKA_P2;
 // Pack Profile 3
 if(toggle_autoXSpam[2])      packed_toggles |= MASK_SPAM_P3;
 if(toggle_manualL1[2])       packed_toggles |= MASK_MANUALL1_P3;
@@ -2531,6 +2682,7 @@ if(autoCoverExit_mode[2])    packed_toggles |= MASK_COVEREXIT_MODE_P3;
 if(autoXSpam_mode[2])        packed_toggles |= MASK_SPAMMODE_P3;
 if(toggle_popShot[2])        packed_toggles |= MASK_POPSHOT_P3;
 if(toggle_shotgunRecoil[2]) packed_toggles |= MASK_SHOTGUN_P3;
+if(toggle_backA[2])        packed_toggles |= MASK_BACKA_P3;
 
 // Save the single packed integer
 // Add global AUTORUN_L3 bit
@@ -2561,7 +2713,13 @@ set_pvar(SPVAR_60, autoCoverExit_cooldown);
     if(shotgun_recoil_time_ms > 500) shotgun_recoil_time_ms = 500;
     popshot_pack = ((shotgun_recoil_time_ms & 0x1FF) << 9) | (popShot_hold_ms & 0x1FF);
     set_pvar(SPVAR_64, popshot_pack);
-    set_pvar(SPVAR_63, autoReload_hold_ms);
+    {
+        int backA_window_tens = backA_window_ms / 10;
+        if(backA_window_tens < 0) backA_window_tens = 0;
+        if(backA_window_tens > 1023) backA_window_tens = 1023;
+        int pack63 = (autoReload_hold_ms & 0x1FFF) | ((backA_window_tens & 0x3FF) << 13);
+        set_pvar(SPVAR_63, pack63);
+    }
 
 }
 
